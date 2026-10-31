@@ -3,14 +3,16 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
+from ..services import detection_object
+
+
 router = APIRouter(
     prefix="/api/detections",
     tags=["Map"],
 )
 
 # Queue stores class names only.
-paths: list[str] = ["stop","stop","stop","stop"
-]
+paths: list[str] = []
 
 # Fixed images for each class.
 # Put the corresponding images inside static/signs/.
@@ -29,38 +31,16 @@ class DetectionRequest(BaseModel):
 
 @router.post("")
 def create_detection(data: DetectionRequest):
-    class_name = data.class_name.strip().lower()
-    if not class_name:
+    result = detection_object.create_detection(data.class_name)
+    if result is None:
         raise HTTPException(
             status_code=400,
             detail="Class name cannot be empty.",
         )
 
-    # Store only the detected class name.
-    paths.append(class_name)
-
-    print(f"[DETECTION RECEIVED] {class_name}")
-
-    return {
-        "message": "Detection received",
-        "class_name": class_name,
-    }
+    return result
 
 
 @router.get("/new")
 def get_pending_detections():
-    if not paths:
-        return {
-            "detected": False,
-            "class_name":None,
-            "image_path":None
-        }
-
-    # Get and remove the oldest queued detection.
-    class_name = paths.pop(0)
-
-    return {
-        "detected": True,
-        "class_name": class_name,
-        "image_path": IMAGE_BY_CLASS.get(class_name),
-    }
+    return detection_object.get_pending_detection()
