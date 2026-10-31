@@ -87,7 +87,7 @@ export default function AlertWidget() {
             if (active) {
                 void checkForDetection();
             }
-        }, 5000);
+        }, 3000);
 
         return () => {
             active = false;
@@ -252,4 +252,4 @@ export default function AlertWidget() {
             </div>
         </div>
     );
-}
+}

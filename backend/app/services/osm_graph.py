@@ -1,14 +1,31 @@
 import osmnx as ox
+
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
-OSM_FILE = BASE_DIR / "static" / "map.osm"
 
-# Load the graph once when this module is imported.
-# Do not reload the file on every routing request.
-G = ox.graph_from_xml(
-    filepath=OSM_FILE,
-    bidirectional=False,
-    simplify=False,
-    retain_all=True,
-)
+class OSMGraph:
+
+    def __init__(self):
+        self.base_dir = Path(__file__).resolve().parent.parent.parent
+        self.osm_file = self.base_dir / "static" / "map.osm"
+
+        self.graph = None
+
+    def load_graph(self):
+        if self.graph is not None:
+            return self.graph
+
+        self.graph = ox.graph_from_xml(
+            filepath=self.osm_file,
+            bidirectional=False,
+            simplify=False,
+            retain_all=True,
+        )
+
+        return self.graph
+
+    def get_graph(self):
+        if self.graph is None:
+            return self.load_graph()
+
+        return self.graph

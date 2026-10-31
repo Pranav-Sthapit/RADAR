@@ -3,7 +3,7 @@ from decimal import Decimal
 from fastapi import APIRouter, HTTPException
 
 from ..schemas.get_route import RouteRequest, RouteResponse
-from ..services import route_service as rt_svc
+from ..services import route_object
 
 router = APIRouter(
     prefix="/api/route",
@@ -25,6 +25,8 @@ destination = {
 def clear_destination():
     destination["lat"]=None
     destination["lng"]=None
+    current_position["lat"]=None
+    current_position["lng"]=None
 
 
 @router.post("", response_model=RouteResponse)
@@ -59,7 +61,7 @@ def get_route(payload: RouteRequest):
         )
 
     try:
-        return rt_svc.calculate_route(
+        return route_object.calculate_route(
             current_position["lat"],
             current_position["lng"],
             destination["lat"],

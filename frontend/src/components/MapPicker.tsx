@@ -112,7 +112,7 @@ export default function MapPicker() {
 
     intervalRef.current = window.setInterval(() => {
       void fetchLatestRoute();
-    }, 2500);
+    }, 2000);
   }, [destinationMarker, fetchLatestRoute]);
 
   const clearDestination = useCallback(async () => {
