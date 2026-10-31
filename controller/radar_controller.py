@@ -1,111 +1,115 @@
 """radar_controller controller."""
+
 from controller import Robot
+
 from car_driver import CarDriver
 from car_router import CarRouter
 from object_detector import ObjectDetector
 
 
 class Car:
-    DRIVE_SPEED=5.0
+
+    DRIVE_SPEED = 5.0
 
     def __init__(self):
-        self.robot=Robot()
-        self.timestep=int(self.robot.getBasicTimeStep())
+        self.__robot = Robot()
+        self.__timestep = int(self.__robot.getBasicTimeStep())
 
-        self.gps = self.robot.getDevice("gps")
-        self.gps.enable(self.timestep)
+        # GPS
+        self.__gps = self.__robot.getDevice("gps")
+        self.__gps.enable(self.__timestep)
 
-        self.imu = self.robot.getDevice("imu")
-        self.imu.enable(self.timestep)
+        # IMU
+        self.__imu = self.__robot.getDevice("imu")
+        self.__imu.enable(self.__timestep)
 
-        self.camera = self.robot.getDevice("camera")
-        self.camera.enable(self.timestep)
+        # Camera
+        self.__camera = self.__robot.getDevice("camera")
+        self.__camera.enable(self.__timestep)
 
-        self.left_steer = self.robot.getDevice("left_steer")
-        self.right_steer = self.robot.getDevice("right_steer")
+        # Steering motors
+        self.__left_steer = self.__robot.getDevice("left_steer")
+        self.__right_steer = self.__robot.getDevice("right_steer")
 
-        self.left_steer.setPosition(0.0)
-        self.right_steer.setPosition(0.0)
+        self.__left_steer.setPosition(0.0)
+        self.__right_steer.setPosition(0.0)
 
-        self.left_front_wheel = self.robot.getDevice(
+        # Front wheels
+        self.__left_front_wheel = self.__robot.getDevice(
             "left_front_wheel"
         )
-        self.right_front_wheel = self.robot.getDevice(
+        self.__right_front_wheel = self.__robot.getDevice(
             "right_front_wheel"
         )
 
-        self.left_front_wheel.setPosition(float("inf"))
-        self.right_front_wheel.setPosition(float("inf"))
+        self.__left_front_wheel.setPosition(float("inf"))
+        self.__right_front_wheel.setPosition(float("inf"))
 
-        self.stop()
+        self.__stop()
 
-        self.driver = CarDriver(self.gps, self.imu)
-        self.router = CarRouter(self.gps)
-        self.detector = ObjectDetector(self.camera)
+        # Supporting objects
+        self.__driver = CarDriver(self.__gps, self.__imu)
+        self.__router = CarRouter(self.__gps)
+        self.__detector = ObjectDetector(self.__camera)
 
+    def __apply_controls(self, steering):
+        self.__left_steer.setPosition(-steering)
+        self.__right_steer.setPosition(-steering)
 
-    def apply_controls(self, steering):
-        self.left_steer.setPosition(-steering)
-        self.right_steer.setPosition(-steering)
+        self.__left_front_wheel.setVelocity(self.DRIVE_SPEED)
+        self.__right_front_wheel.setVelocity(self.DRIVE_SPEED)
 
-        self.left_front_wheel.setVelocity(self.DRIVE_SPEED)
-        self.right_front_wheel.setVelocity(self.DRIVE_SPEED)
+    def __stop(self):
+        self.__left_front_wheel.setVelocity(0.0)
+        self.__right_front_wheel.setVelocity(0.0)
 
-    def stop(self):
-        self.left_front_wheel.setVelocity(0.0)
-        self.right_front_wheel.setVelocity(0.0)
+        self.__left_steer.setPosition(0.0)
+        self.__right_steer.setPosition(0.0)
 
-        self.left_steer.setPosition(0.0)
-        self.right_steer.setPosition(0.0)
-
-    def update_navigation(self):
-        checkpoint = self.router.get_checkpoint()
+    def __update_navigation(self):
+        checkpoint = self.__router.get_checkpoint()
 
         if checkpoint is None:
-            self.stop()
+            self.__stop()
             return
 
-        self.driver.set_checkpoint(
+        self.__driver.set_checkpoint(
             checkpoint["lat"],
             checkpoint["lng"],
         )
 
-        steering, distance = self.driver.drive_towards()
+        steering, distance = self.__driver.drive_towards()
 
         if distance is None:
-            self.stop()
+            self.__stop()
             return
 
-        self.apply_controls(steering)
+        self.__apply_controls(steering)
 
-    # ====================================
-    # MAIN CONTROLLER LOOP
-    # ====================================
     def run(self):
-        self.router.update_position()
+        self.__router.update_position()
 
-        self.router.start_routing()
-        self.detector.start_detection()
+        self.__router.start_routing()
+        self.__detector.start_detection()
 
         try:
-            while self.robot.step(self.timestep) != -1:
+            while self.__robot.step(self.__timestep) != -1:
 
                 # Update GPS position for router.
-                self.router.update_position()
+                self.__router.update_position()
 
                 # Submit camera frame for background detection.
-                self.detector.submit_frame()
+                self.__detector.submit_frame()
 
                 # Navigate toward current checkpoint.
-                self.update_navigation()
+                self.__update_navigation()
 
         finally:
-            self.stop()
-            self.detector.stop_detection()
-            self.router.stop_routing()
+            self.__stop()
+            self.__detector.stop_detection()
+            self.__router.stop_routing()
 
             print("BMW controller stopped.")
-
 
 
 car = Car()
