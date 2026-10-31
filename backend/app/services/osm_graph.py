@@ -6,26 +6,26 @@ from pathlib import Path
 class OSMGraph:
 
     def __init__(self):
-        self.base_dir = Path(__file__).resolve().parent.parent.parent
-        self.osm_file = self.base_dir / "static" / "map.osm"
+        self.__base_dir = Path(__file__).resolve().parent.parent.parent
+        self.__osm_file = self.__base_dir / "static" / "map.osm"
 
-        self.graph = None
+        self.__graph = None
 
-    def load_graph(self):
-        if self.graph is not None:
-            return self.graph
+    def __load_graph(self):
+        if self.__graph is not None:
+            return self.__graph
 
-        self.graph = ox.graph_from_xml(
-            filepath=self.osm_file,
+        self.__graph = ox.graph_from_xml(
+            filepath=self.__osm_file,
             bidirectional=False,
             simplify=False,
             retain_all=True,
         )
 
-        return self.graph
+        return self.__graph
 
     def get_graph(self):
-        if self.graph is None:
-            return self.load_graph()
+        if self.__graph is None:
+            return self.__load_graph()
 
-        return self.graph
+        return self.__graph

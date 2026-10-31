@@ -18,17 +18,17 @@ class RouteService:
         osm_graph: OSMGraph,
         map_service: MapService,
     ):
-        self.osm_graph = osm_graph
-        self.map_service = map_service
+        self.__osm_graph = osm_graph
+        self.__map_service = map_service
 
-    def nearest_reachable_node(
+    def __nearest_reachable_node(
         self,
         lat: float,
         lng: float,
         target_node,
     ):
 
-        G = self.osm_graph.get_graph()
+        G = self.__osm_graph.get_graph()
 
         candidates = []
 
@@ -76,19 +76,19 @@ class RouteService:
         end_lng: Decimal,
     ):
 
-        G = self.osm_graph.get_graph()
+        G = self.__osm_graph.get_graph()
 
         if G.number_of_nodes() == 0:
             raise ValueError("The road network graph is empty.")
 
         # Validate coordinates.
-        self.map_service.validate_coordinate(
+        self.__map_service.validate_coordinate(
             start_lat,
             start_lng,
             "Start point",
         )
 
-        self.map_service.validate_coordinate(
+        self.__map_service.validate_coordinate(
             end_lat,
             end_lng,
             "Destination",
@@ -102,7 +102,7 @@ class RouteService:
         )
 
         # Find the nearest reachable starting road node.
-        start_node = self.nearest_reachable_node(
+        start_node = self.__nearest_reachable_node(
             float(start_lat),
             float(start_lng),
             end_node,

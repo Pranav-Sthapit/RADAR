@@ -6,11 +6,11 @@ from .osm_graph import OSMGraph
 class MapService:
 
     def __init__(self, osm_graph: OSMGraph):
-        self.osm_graph = osm_graph
+        self.__osm_graph = osm_graph
 
     def get_map_bounds(self):
 
-        G = self.osm_graph.get_graph()
+        G = self.__osm_graph.get_graph()
 
         if G.number_of_nodes() == 0:
             raise ValueError("The OSM graph contains no road nodes.")
@@ -44,5 +44,3 @@ class MapService:
                 status_code=400,
                 detail=f"{name} is outside the permitted OSM map area.",
             )
-
-map_obj=MapService
